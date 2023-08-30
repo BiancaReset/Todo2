@@ -31,19 +31,22 @@ const TodoApp = () => {
       headers: {
         "Content-Type": "application/json"
       }
+      
     })
-      .then((resp) => {
-        if (!resp.ok) {
-          throw new Error("These has been an error");
-        }
-        return resp.json();
-      })
-      .then((data) => {
-        setTodosList(data);
-      })
-      .catch((error) => {
-        console.log(error);
-      })
+    .then((resp) => {
+      if (resp.ok) {
+          bringTodos(); 
+          return resp.json();
+      } else {
+          throw new Error("There has been an error");
+      }
+  })
+  .then((data) => {
+      setTodosList(data);
+  })
+  .catch((error) => {
+      console.log(error);
+  });
   }
 
   const bringTodos = () => {
@@ -67,6 +70,7 @@ const TodoApp = () => {
         method: "DELETE",
       }
     ).then(() => {
+      bringTodos();
     });
   };
 
