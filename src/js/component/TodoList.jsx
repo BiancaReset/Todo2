@@ -6,7 +6,6 @@ const TodoApp = () => {
 
   useEffect(() => {
     bringTodos()
-    createTodo()
   }, []);
 
 
@@ -18,36 +17,35 @@ const TodoApp = () => {
         "Content-Type": "application/json"
       }
     }).then(response => response.json)
-      .then(data => console.log(data))
+      .then(() => bringTodos())
       .catch(error => console.log(error));
   }
   const addTodo = () => {
-    let task = { label: inputText, done: false }
-    let pendingTodos = [...todosList, task]
-    setTodosList(pendingTodos)
+    let task = { label: inputText, done: false };
+    let pendingTodos = [...todosList, task];
+
     fetch('https://playground.4geeks.com/apis/fake/todos/user/BiancaReset', {
       method: "PUT",
-      body: JSON.stringify(todosList),
+      body: JSON.stringify(pendingTodos),
       headers: {
         "Content-Type": "application/json"
       }
-      
     })
-    .then((resp) => {
-      if (resp.ok) {
-          bringTodos(); 
+      .then((resp) => {
+        if (resp.ok) {
           return resp.json();
-      } else {
+        } else {
           throw new Error("There has been an error");
-      }
-  })
-  .then((data) => {
-      setTodosList(data);
-  })
-  .catch((error) => {
-      console.log(error);
-  });
-  }
+        }
+      })
+      .then((data) => {
+        bringTodos()
+        setInputText("");
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   const bringTodos = () => {
     fetch(
@@ -58,20 +56,45 @@ const TodoApp = () => {
           "Content-Type": "application/json"
         }
       }).then(resp => resp.json())
-      .then(data => setTodosList(data))
+      .then(data => {
+        console.log(data)
+        if (data.msg) {
+          createTodo()
+        }
+        else {
+          setTodosList(data)
+        }
+      })
       .catch(error => console.log(error))
   }
 
-  const deleteTodo = () => {
+  const deleteTodo = (position) => {
+    let pendingTodos = [...todosList];
+    pendingTodos = pendingTodos.filter((item, index) => index !== position)
 
-    fetch(
-      "https://playground.4geeks.com/apis/fake/todos/user/BiancaReset/",
-      {
-        method: "DELETE",
+
+    fetch('https://playground.4geeks.com/apis/fake/todos/user/BiancaReset', {
+      method: "PUT",
+      body: JSON.stringify(pendingTodos),
+      headers: {
+        "Content-Type": "application/json"
       }
-    ).then(() => {
-      bringTodos();
-    });
+    })
+      .then((resp) => {
+        if (resp.ok) {
+          return resp.json();
+        } else {
+          throw new Error("There has been an error");
+        }
+      })
+      .then((data) => {
+        bringTodos()
+        //setTodosList(data); // Update todosList after the PUT request is successful
+        setInputText(""); // Clear the input field
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const deleteAllTodos = () => {
@@ -79,7 +102,7 @@ const TodoApp = () => {
       method: "DELETE",
 
     }).then(() => {
-      setTodosList([]);
+      createTodo();
     });
   };
 
@@ -104,14 +127,14 @@ const TodoApp = () => {
         </button>
       </form>
       <ul className="list-group row">
-        {todosList.length > 0 && todosList.map((item) => (
-          <li className="list-group-item text-left elementos" key={item._id}>
+        {todosList.length > 0 && todosList.map((item, index) => (
+          <li className="list-group-item text-left d-flex justify-content-between" key={index}>
             <span>{item.label}</span>
             <button
               className="btn btn-danger eliminador float-right"
-              onClick={() => deleteTodo(item._id)}
+              onClick={() => deleteTodo(index)}
             >
-              <span>X</span>
+              <span>x</span>
             </button>
           </li>
         ))}
